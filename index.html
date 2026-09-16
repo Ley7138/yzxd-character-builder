@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>《应许之地》人设创建向导</title>
+    <style>
+        :root {
+            --primary: #4a6fa5;
+            --primary-hover: #3b5984;
+            --bg-color: #f7f9fc;
+            --card-bg: #ffffff;
+            --text-color: #2c3e50;
+            --text-muted: #666666;
+            --border-color: #e2e8f0;
+            --accent-bg: #f0f4f8;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 650px;
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            padding: 24px;
+            box-sizing: border-box;
+        }
+
+        /* 进度条 */
+        .progress-bar {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            position: relative;
+        }
+
+        .progress-bar::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--border-color);
+            z-index: 1;
+            transform: translateY(-50%);
+        }
+
+        .step-node {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            z-index: 2;
+            color: var(--text-muted);
+            transition: all 0.3s ease;
+        }
+
+        .step-node.active {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: #fff;
+        }
+
+        .step-node.completed {
+            border-color: var(--primary);
+            background: var(--card-bg);
+            color: var(--primary);
+        }
+
+        /* 步骤页面 */
+        .step-page {
+            display: none;
+        }
+
+        .step-page.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 {
+            font-size: 20px;
+            margin-top: 0;
+            margin-bottom: 8px;
+            color: var(--text-color);
+        }
+
+        p.subtitle {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        input[type="text"], select, textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus, select:focus, textarea:focus {
+            border-color: var(--primary);
+        }
+
+        /* 设定原文展示框 */
+        .info-box {
+            margin-top: 10px;
+            padding: 12px 16px;
+            background-color: var(--accent-bg);
+            border-left: 4px solid var(--primary);
+            border-radius: 0 6px 6px 0;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #34495e;
+            white-space: pre-wrap;
+            max-height: 220px;
+            overflow-y: auto;
+        }
+
+        /* 按钮 */
+        .btn-group {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 28px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border-radius: 6px;
+            border: none;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-prev {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .btn-prev:hover {
+            background: #cbd5e0;
+        }
+
+        .btn-next {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-next:hover {
+            background: var(--primary-hover);
+        }
+
+        .btn-copy {
+            background: #27ae60;
+            color: white;
+            width: 100%;
+            margin-top: 12px;
+            padding: 12px;
+        }
+
+        .btn-copy:hover {
+            background: #219150;
+        }
+
+        #output {
+            background: #1e293b;
+            color: #f8fafc;
+            padding: 16px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            word-break: break-all;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- 进度条 -->
+    <div class="progress-bar">
+        <div class="step-node active" id="node-1">1</div>
+        <div class="step-node" id="node-2">2</div>
+        <div class="step-node" id="node-3">3</div>
+        <div class="step-node" id="node-4">4</div>
+        <div class="step-node" id="node-5">5</div>
+    </div>
+
+    <!-- 步骤 1：基本信息 -->
+    <div class="step-page active" id="step-1">
+        <h2>基础信息</h2>
+        <p class="subtitle">请填写角色的基本称呼与外貌设定。</p>
+
+        <div class="form-group">
+            <label>角色台词 / 常用语</label>
+            <input type="text" id="quote" placeholder="“这里写一句或者几句台词/人物可能会说的话！”">
+        </div>
+
+        <div class="form-group">
+            <label>姓名或称呼 *</label>
+            <input type="text" id="name" placeholder="输入角色的名字或称呼">
+        </div>
+
+        <div class="form-group">
+            <label>性别</label>
+            <select id="gender">
+                <option value="男">男</option>
+                <option value="女">女</option>
+                <option value="双性">双性</option>
+                <option value="无">无</option>
+                <option value="流动">流动</option>
+                <option value="其他">其他</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>身高</label>
+            <input type="text" id="height" placeholder="如果经常变化，可以写常用形态身高。也可以写好几个。">
+        </div>
+
+        <div class="form-group">
+            <label>年龄</label>
+            <input type="text" id="age" placeholder="具体的数字，或者看起来给人什么年纪的感觉，或者打上问号。">
+        </div>
+
+        <div class="form-group">
+            <label>外貌描述</label>
+            <textarea id="appearance" rows="3" placeholder="无论是否用图片，至少包括发色，瞳色和头发长度的描述，以防理解出现误差。也可以仔细地写。"></textarea>
+        </div>
+    </div>
+
+    <!-- 步骤 2：身份与种族 -->
+    <div class="step-page" id="step-2">
+        <h2>身份与种族</h2>
+        <p class="subtitle">选择你的身份，查阅对应的世界观原案设定。</p>
+
+        <div class="form-group">
+            <label>身份分类</label>
+            <select id="identity" onchange="updateIdentityInfo()">
+                <option value="本地人">本地人</option>
+                <option value="外乡人">外乡人</option>
+            </select>
+            <div class="info-box" id="identity-info">外乡人就是异世界人！一开始有着能力。能力可以选择，也可以选择随机。</div>
+        </div>
+
+        <div class="form-group">
+            <label>种族选择</label>
+            <select id="race" onchange="updateRaceInfo()">
+                <option value="人类">人类</option>
+                <option value="精灵">精灵</option>
+                <option value="半精灵">半精灵</option>
+                <option value="妖精">妖精</option>
+                <option value="影妖精">影妖精</option>
+                <option value="智兽">智兽</option>
+                <option value="兽人">兽人</option>
+                <option value="半兽人">半兽人</option>
+                <option value="海之民">海之民</option>
+                <option value="魔族">魔族</option>
+                <option value="古龙族">古龙族（魔族分支）</option>
+                <option value="影族">影族（魔族分支）</option>
+                <option value="光灵">光灵（魔族分支）</option>
+                <option value="吸血鬼（噬血魔）">吸血鬼/噬血魔（魔族分支）</option>
+                <option value="梦魔">梦魔（魔族分支）</option>
+                <option value="魅魔">魅魔（魔族分支）</option>
+                <option value="亡灵">亡灵（通用）</option>
+                <option value="亡灵（徘徊者）">亡灵（徘徊者）</option>
+                <option value="亡灵（飘泊者）">亡灵（飘泊者）</option>
+                <option value="亡灵（梦魇）">亡灵（梦魇）</option>
+                <option value="亡灵（替代者）">亡灵（替代者）</option>
+                <option value="人造人（机构管理）">人造人（机构管理）</option>
+                <option value="人造人（非法）">人造人（非法）</option>
+                <option value="智慧机械">智慧机械</option>
+            </select>
+            <div class="info-box" id="race-info">载入种族设定中...</div>
+        </div>
+    </div>
+
+    <!-- 步骤 3：阵营与经历 -->
+    <div class="step-page" id="step-3">
+        <h2>阵营与背景</h2>
+        <p class="subtitle">选择角色所属阵营，查阅公开公开简述。</p>
+
+        <div class="form-group">
+            <label>阵营</label>
+            <select id="faction" onchange="updateFactionInfo()">
+                <option value="无">无</option>
+                <option value="王国/Kingdom">1.王国/Kingdom</option>
+                <option value="焰星/Flare star">2.焰星/Flare star</option>
+                <option value="暗影/Shadow">3.暗影/Shadow</option>
+                <option value="被遗弃者/Abandoned">4.被遗弃者/Abandoned</option>
+                <option value="信仰者/Believer">5.信仰者/Believer</option>
+                <option value="信使/messenger">6.信使/messenger</option>
+                <option value="艾丽丝之眼/Alice's eyes">7.艾丽丝之眼/Alice's eyes</option>
+                <option value="见证者协会/Witnesses">8.见证者协会/Witnesses</option>
+            </select>
+            <div class="info-box" id="faction-info">载入阵营设定中...</div>
+        </div>
+
+        <div class="form-group">
+            <label>个人背景与经历</label>
+            <textarea id="background" rows="3" placeholder="背景啊性格啊经历啊。也可以只有一句话。"></textarea>
+        </div>
+    </div>
+
+    <!-- 步骤 4：愿望与祝福 -->
+    <div class="step-page" id="step-4">
+        <h2>愿望与祝福</h2>
+        <p class="subtitle">小的大的都可以。没有愿望是不会来到这里的。</p>
+
+        <div class="form-group">
+            <label>愿望 *</label>
+            <textarea id="wish" rows="2" placeholder="小的大的都可以。没有愿望是不会来到这里的。"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label>祝福类型</label>
+            <select id="blessing-type" onchange="updateBlessingInfo()">
+                <option value="未分发">未分发（由系统分发）</option>
+                <option value="神眷">1. 神眷</option>
+                <option value="泉源">2. 泉源</option>
+                <option value="感知">3. 感知</option>
+                <option value="思想">4. 思想</option>
+                <option value="转化">5. 转化</option>
+                <option value="无形">6. 无形</option>
+            </select>
+            <div class="info-box" id="blessing-info">载入祝福设定中...</div>
+        </div>
+
+        <div class="form-group">
+            <label>祝福名称 / 具体描述</label>
+            <input type="text" id="blessing-detail" placeholder="大家可以给祝福取一个很酷的名字！也可以只有效果描述。">
+        </div>
+
+        <div class="form-group">
+            <label>备注</label>
+            <input type="text" id="remark" placeholder="无。或者任何想补充的资讯。">
+        </div>
+    </div>
+
+    <!-- 步骤 5：完成与复制 -->
+    <div class="step-page" id="step-5">
+        <h2>人设卡生成完成！</h2>
+        <p class="subtitle">点击下方按钮复制格式文本，直接粘贴到 Notion 中即可。</p>
+
+        <div id="output"></div>
+        <button class="btn-copy" onclick="copyCardText()">一键复制人设卡 Markdown</button>
+    </div>
+
+    <!-- 导航按钮 -->
+    <div class="btn-group">
+        <button class="btn-prev" id="btn-prev" onclick="changeStep(-1)" style="display:none;">上一步</button>
+        <button class="btn-next" id="btn-next" onclick="changeStep(1)">下一步</button>
+    </div>
+</div>
+
+<script>
+// 原案文本 - 种族
+const raceData = {
+    "人类": "1.人类\n大陆上数量最多的种族。",
+    "精灵": "2.精灵\n由大气的魔素孕育，从世界大树下的“生命母泉”诞生的存在。魔素的质量会直接影响其身心健康，所以对居住地挑剔。（也有对魔素比较不敏感的存在。越对魔素敏感一般也更擅长运用魔法）",
+    "半精灵": "3.半精灵\n精灵和其他种族间诞生的存在，若是交配繁殖，非精灵的一方需饮下生命母泉，并在一个月内完成繁衍仪式。",
+    "妖精": "4.妖精\n妖精与精灵不一样，是完全地由“愿望”和“思念”等概念中诞生的存在，妖精出生就与某种概念绑定，一生会为了贯彻概念或者实现愿望行动。妖精的身体无法触碰物质界，必须与某个个体或者群体定下契约才可以拥有物质界的身体。妖精的身体消亡其存在也只是回到妖精界。妖精可以依照自己的爱好塑造身体，一般来说是符合其概念的形态。",
+    "影妖精": "5.影妖精\n妖精的一种，从负面的概念中诞生，一般拥有破坏性的目的而被视为危险。这个称呼最早在人类炼金术士中流传，后广为人知，但对于妖精来说所有的妖精都是一样的。",
+    "智兽": "6.智兽\n保持动物的姿态，但拥有了巨大智慧的存在，与自然共存。普通动物皆有觉醒为智兽的可能（自然觉醒机率很低，常见在有优秀生存能力的个体中发生觉醒）与普通动物不一样的是，智兽身上会在某部位或者全身显现一种发光的纹路，且可以自主产生魔力，驱使各种的法术。（注：智兽中包括了所有海陆空生物，也有一些混合的生物，可以不必是现存动物）这被称为智兽纹，可以通过学习身体的掌控而自由隐藏和显现。",
+    "兽人": "7.兽人\n智兽和人类间产生的后代衍生。一般智兽和其他种族间会繁殖出更偏向动物形态的后代，但与人类间有大概率产生二足步行的智兽，这就是兽人。兽人只有部分个体出生会有智兽纹，另外也可能出生没有但后期觉醒。（有没有智兽纹都可以学法术，但是有的话天赋更高）（注：兽人中包括了所有海陆空生物衍生，也有一些混合的生物，可以不必是现存动物）",
+    "半兽人": "8.半兽人\n兽人的分支，数量比兽人和智兽多，大部分融入人类社会。经过几百年的演变和血统淡化几乎不存在有智兽纹的个体，大部分几乎无魔法天赋，学习法术需要巨大的后天努力（也有例外）。取之代之的是，他们在保留有一些基于动物优势的能力同时（如夜视，攀爬，产毒，速度爆发）还天生具有在人类和半兽人状态自由切换外表的能力，这是长期在人类社会生存下刻入血统的能力。（注：半兽人中包括了所有海陆空生物，也有一些混合的生物，可以不必是现存动物）",
+    "海之民": "9.海之民\n与智兽相近的存在，从海洋中诞生的拥有智慧的生物，他们的形态各异，有接近鱼类的存在也有靠近人形的存在，有些甚至会呈现持有珊瑚或者藻类的姿态。海之民并不完全是自由演化所衍生的，而是由持有强大能力的“海洋魔女”米朵莉特赐予海中生物恩惠，生物间自行繁衍的最后抵达的结果。海之民皆如神明信奉米朵莉特，会尊称为海洋魔女大人，海洋的女儿米朵莉特等。",
+    "魔族": "10.魔族\n魔族被人类生物学界认为是相当近似精灵，与魔素亲密的存在，但各方面大有不同。他们在与物质界相对的镜面世界——魔界（一些学者形容为“地底的最深处”）中出生。魔界中充满了大量的魔素，其浓度高得无法让物质界的正常生物和植物生息。魔族的特征之一是能迅速吸收周围的魔素并转换为魔力，在身上蓄积巨大的魔力，自然地使用魔力因应环境改变习性。一般来说，由于魔族会不停的散发多余魔力，对于魔素耐受性越低/感受性越高的人来说，只要站在旁边就会很难受。",
+    "古龙族": "11.古龙族\n魔族的分支，自远古生在魔界的古代巨龙流传下来的血统，无比接近纯魔。古龙族下有很多其他的龙族分支，也有部分是离开了魔界发展的部族。",
+    "影族": "12.影族\n魔族的分支，如名是由影子构成的部族，人类对其的掌握少之又少，但影族亦是接近纯魔血统的种族。影族的成员大部分擅于伪装和潜行，可以无声地变装为其他种族，躲藏在他人的影子中，甚至消去魔力的气息，所以行踪难以捕捉。",
+    "光灵": "13.光灵\n魔族的分支，浑身发光的存在，被部分地区传颂为天使。接近纯魔血统的种族。对人类和其他住民一般只要直视就会伤眼，但是魔界住民完全不会受影响。光的亮度和颜色会因情绪改变。虽然给人光明使者的感觉，但大部分光灵喜爱黑夜信仰黑暗，“唯有在黑暗中光明才有意义”——在光灵之间还有名为新月舞会的传统，他们会在完全的黑暗中依序跳舞、改变自己的光线，进行告白等。他们和影族自古关系很好。",
+    "吸血鬼（噬血魔）": "14.吸血鬼（噬血魔）\n魔族的分支，一开始在魔界被称为噬血魔，在他们到了物质界发展后逐渐变成人类口中的吸血鬼。正如其名依靠进食血液生活。离开了魔界发展的他们纯魔的血统淡化许多，无法有效转化空气中的魔素，但取而代之他们习得了可以从血液中提取魔力的能力。吸血鬼大部分属于某个家族，有明确的阶级制度（血统更接近纯魔的家族被称为贵族吸血鬼，统治着各分家。）吸血鬼家族皆有家族誓约。",
+    "梦魔": "15.梦魔\n魔族的分支，可以食用人的梦境/精神力量转化为魔力，有造梦的能力。和吸血鬼一样纯魔血统很淡，大多独来独往或者与妖精组成搭档。梦魔的始祖和妖精关系很好，后代的妖精也对梦魔族有良好的印象。",
+    "魅魔": "16.魅魔\n魔族的分支，一种可以化为精神体寄生在其他生物上的生物，熟练精神操作法术的一族。纯魔血统淡，魅魔可以吸取人的体液转化为魔力（包括血液，眼泪等，不同的魅魔对体液的喜好不一样）。被吸血鬼鄙视，被单方面当成世仇。",
+    "亡灵": "17.亡灵\n死后只剩下灵魂的存在。有各种各样的类型，通常只有魔力高或者偶尔同频的人才可以一直看见，一些特殊的个体也可以显现出实体。",
+    "亡灵（徘徊者）": "18.亡灵（徘徊者）\n死后不愿意转生，坚持留在某地的灵魂。徘徊者一般无法离开特定的地方，而且也不愿离开。徘徊者会有特殊的“祝福”，一般是可以作用于一定范围的能力。如果徘徊者放弃执念的话，可以选择转生，或者以失去祝福作为代偿成为飘泊者。",
+    "亡灵（飘泊者）": "19.亡灵（飘泊者）\n死后不想转生成为任何其他存在的灵魂。飘泊者会失去生前的大部分能力和“祝福”（也有保有祝福的个例），一般无法干涉实体，但是经过修炼提高灵力之后也可以干涉实体，习得法术，甚至再度取得祝福。",
+    "亡灵（梦魇）": "20.亡灵（梦魇）\n有着强烈的执念的亡灵，会寻找执念的对象（可以是一个特定的人或者一些符合条件的人）对其持续带来噩梦和精神压迫，灵力很强，一般有着针对个体施予的祝福。",
+    "亡灵（替代者）": "21.亡灵（替代者）\n拥有寄生的能力或跟宿主有强烈联系，长期附身活人或者尸体，替代其存在活着的能力。能力受附身对象影响，可以使用附身对象的能力和祝福。",
+    "人造人（机构管理）": "22.人造人（机构管理）\n拥有皇家授权的炼金术院制造，被允许制作和改良人造人，并投入各个领域使用，炼金术院大部分的杂务和警备工作都由人造人们处理。只要有符合一定标准的四肢，头部和躯体，加入魔导核心，人造人便可以成立。",
+    "人造人（非法）": "23.人造人（非法）\n非法的人造人，未经过授权制作的人造人都在此类，一般为炼金术士的私人研究，由于没有成熟和规范的技术支持，经常诞生异形一样的扭曲存在。",
+    "智慧机械": "24.智慧机械\n拥有智慧的机械的统称，其数量少之又少，不限于人形，很少人研究的领域，但似乎有特殊的团体在研究......？"
+};
+
+// 原案文本 - 阵营
+const factionData = {
+    "无": "无阵营。自由行动或尚未加入任何组织。",
+    "王国/Kingdom": "1.王国/Kingdom\n统治王国的国王的侧近或者支持者们。\n阵营目的：将所有主要的反王国势力消除或者制服，守护国民的和平。",
+    "焰星/Flare star": "2.焰星/Flare star\n由前奴隶们组成的工会，现在是公认的全大陆第一大工人福利组织，就算是王国也不能完全管制住他们的行动。\n阵营目的：保护所有奴隶，为同伴争取利益。焰星位于中立阵营，即使不加入焰星也可以进行焰星的任务。",
+    "暗影/Shadow": "3.暗影/Shadow\n主要成员是从焰星中独立出来的六位精英成员，其中一人是暗影的领袖。认为王国手段过于温吞，根本不在意非人的权益。十分过激的组织。\n阵营目的：让领袖成为国王，带来新时代。",
+    "被遗弃者/Abandoned": "4.被遗弃者/Abandoned\n认为被神明所抛弃的人们，他们中的大半经历过转生而仍未能实现愿望，或是无法认同洛卡米尔的理念，认为世界不应该继续发展下去。\n阵营目的：毁灭整片大陆，终结一切。",
+    "信仰者/Believer": "5.信仰者/Believer\n洛卡米尔的信徒们，一些人追随大祭司，另一些只是单纯地抱有信仰，“洛卡米尔会带来让所有灵魂幸福的世界”是他们的信仰核心。他们被神或大祭司传递了预言，“这个世界将提前迎来第三度的大灾难”。\n阵营目的：阻止被遗弃者的行动，并活过预言之日。",
+    "信使/messenger": "6.信使/messenger\n由各种族的存在组成，不满于只由人类站在统治最高点的组织。\n阵营目的：拉拢不同阵营从内部破坏王国派的统治，推举由多种族精英组成的议会主导的共和国制度。虽然和暗影相近，对王国抱有负面的态度，但是不认可暗影的行动，甚至认为暗影阻碍了他们的行动。",
+    "艾丽丝之眼/Alice's eyes": "7.艾丽丝之眼/Alice's eyes\n承载“人造人也能如同人造人般生活”的概念，暗中创立的组织。保护非法人造人和收留有各种缘由逃离炼金院的人造人们。\n阵营目的：更改王国的条例，让人造人可以像人类那样自由生活——为了达成目的会采取最有效率的手段，可能是让国王下位，也可能是和其他阵营合作。",
+    "见证者协会/Witnesses": "8.见证者协会/Witnesses\n历史的见证人！一群对于历史和真实名人有着疯狂热爱的存在，其背后听说有贵族支撑，在社会的黑暗面也有线人，偷偷地做着有点见不得光的二次创作小说，音乐和画作。\n阵营目的：收集尽可能多的情报，见证时代的最后。"
+};
+
+// 原案文本 - 祝福
+const blessingData = {
+    "未分发": "未分发\n如果有点想不出来，请写下“未分发”，系统会为你分发一个。也存在初期鉴定不出来，后来才展现的“迟来的祝福”。",
+    "神眷": "1.神眷 - “心愿“达成以后可以得到的第二个祝福，一般与对象的愿望，为人行事和使命等息息相关。",
+    "泉源": "2.泉源 - 增幅类型的祝福，一般具有触发条件。以本地举例，是「当生命危险时拥有怪力」、「当兴奋时得到双倍的魔力...」等的祝福。也有无触发条件，但会消耗体力的类型。",
+    "感知": "3.感知 - 对万物的感受力。分支很多，与五感关连的能力都被归于感知祝福。例子来说，有「五官敏感度提升亅、「千里眼亅等等。有可以自由控制的人，也有一直在被动发动祝福的人。",
+    "思想": "4.思想 - 关连于精神与知识的祝福。例子来说，有「读取思想亅、「理解特定领域的知识亅、「免疫精神法术」等等。",
+    "转化": "5.转化 - 变换物体或力量的祝福，因应不同的神祝福的效果有很大的差别。例子来说，有「改变自身形态」、「将特定力量转化为另一力量」、「将物体转化为另一物体」等等。",
+    "无形": "6.无形 - 无法被鉴定出效果，或者祝福的性质不稳定的祝福。因为难以辨别祝福是否发动而被被称为「无形的祝福」，非常罕有的例子。已知的这类祝福有「每天效果不一样的祝福亅、「复制他人祝福的祝福」。"
+};
+
+let currentStep = 1;
+
+function updateIdentityInfo() {
+    const val = document.getElementById('identity').value;
+    document.getElementById('identity-info').innerText = val === "外乡人" 
+        ? "外乡人：异世界人！一开始有着能力。能力可以选择，也可以选择随机。转生：异界人初来此世界时也可以选择自由转生为喜欢的种族。" 
+        : "本地人：选择本地种族。大部分生物死后，可以按照意愿转生为喜欢的种族。";
+}
+
+function updateRaceInfo() {
+    const val = document.getElementById('race').value;
+    document.getElementById('race-info').innerText = raceData[val] || "无相关设定介绍。";
+}
+
+function updateFactionInfo() {
+    const val = document.getElementById('faction').value;
+    document.getElementById('faction-info').innerText = factionData[val] || "无相关设定介绍。";
+}
+
+function updateBlessingInfo() {
+    const val = document.getElementById('blessing-type').value;
+    document.getElementById('blessing-info').innerText = blessingData[val] || "无相关设定介绍。";
+}
+
+function changeStep(delta) {
+    if (delta === 1 && !validateCurrentStep()) return;
+
+    document.getElementById(`step-${currentStep}`).classList.remove('active');
+    document.getElementById(`node-${currentStep}`).classList.remove('active');
+    if (delta > 0) document.getElementById(`node-${currentStep}`).classList.add('completed');
+
+    currentStep += delta;
+
+    document.getElementById(`step-${currentStep}`).classList.add('active');
+    document.getElementById(`node-${currentStep}`).classList.add('active');
+
+    document.getElementById('btn-prev').style.display = currentStep === 1 ? 'none' : 'block';
+    if (currentStep === 5) {
+        document.getElementById('btn-next').style.display = 'none';
+        generateFinalCard();
+    } else {
+        document.getElementById('btn-next').style.display = 'block';
+        document.getElementById('btn-next').innerText = '下一步';
+    }
+}
+
+function validateCurrentStep() {
+    if (currentStep === 1) {
+        const name = document.getElementById('name').value.trim();
+        if (!name) {
+            alert('请填写姓名或称呼！');
+            return false;
+        }
+    }
+    if (currentStep === 4) {
+        const wish = document.getElementById('wish').value.trim();
+        if (!wish) {
+            alert('没有愿望是不会来到这里的，请填写角色的愿望！');
+            return false;
+        }
+    }
+    return true;
+}
+
+function generateFinalCard() {
+    const quote = document.getElementById('quote').value || "......";
+    const name = document.getElementById('name').value;
+    const gender = document.getElementById('gender').value;
+    const height = document.getElementById('height').value || "未填写";
+    const age = document.getElementById('age').value || "未填写";
+    const appearance = document.getElementById('appearance').value || "未填写";
+    const identity = document.getElementById('identity').value;
+    const race = document.getElementById('race').value;
+    const faction = document.getElementById('faction').value;
+    const background = document.getElementById('background').value || "无。";
+    const wish = document.getElementById('wish').value;
+    const blessingType = document.getElementById('blessing-type').value;
+    const blessingDetail = document.getElementById('blessing-detail').value || "未详细填写";
+    const remark = document.getElementById('remark').value || "无。";
+
+    const text = 
+`“${quote}”
+
+---
+- **外乡人/本地人**：${identity}
+- **姓名或称呼**：${name}
+- **性别**：${gender}
+- **种族**：${race}
+- **身高**：${height}
+- **年龄**：${age}
+- **外貌**：${appearance}
+- **介绍**：${background}
+- **阵营**：${faction}
+- **愿望**：${wish}
+- **祝福**：[${blessingType}] ${blessingDetail}
+- **备注**：${remark}
+---`;
+
+    document.getElementById('output').innerText = text;
+}
+
+function copyCardText() {
+    const text = document.getElementById('output').innerText;
+    navigator.clipboard.writeText(text).then(() => {
+        alert('已复制人设卡文本！直接粘贴到 Notion 即可。');
+    });
+}
+
+// 初始化
+updateRaceInfo();
+updateFactionInfo();
+updateBlessingInfo();
+</script>
+
+</body>
+</html>
