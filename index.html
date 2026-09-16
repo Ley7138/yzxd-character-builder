@@ -211,6 +211,8 @@
             white-space: pre-wrap;
             word-break: break-all;
             margin-top: 15px;
+            -webkit-user-select: text;
+            user-select: text;
         }
     </style>
 </head>
@@ -318,7 +320,7 @@
     <!-- 步骤 3：阵营与经历 -->
     <div class="step-page" id="step-3">
         <h2>阵营与背景</h2>
-        <p class="subtitle">选择角色所属阵营，查阅公开公开简述。</p>
+        <p class="subtitle">选择角色所属阵营，查阅公开简述。</p>
 
         <div class="form-group">
             <label>阵营</label>
@@ -380,10 +382,10 @@
     <!-- 步骤 5：完成与复制 -->
     <div class="step-page" id="step-5">
         <h2>人设卡生成完成！</h2>
-        <p class="subtitle">点击下方按钮复制格式文本，直接粘贴到 Notion 中即可。</p>
+        <p class="subtitle">点击下方按钮复制普通文本，可直接粘贴保存为 txt 格式。</p>
 
         <div id="output"></div>
-        <button class="btn-copy" onclick="copyCardText()">一键复制人设卡 Markdown</button>
+        <button class="btn-copy" id="copy-btn" onclick="copyCardText()">一键复制纯文本人设卡</button>
     </div>
 
     <!-- 导航按钮 -->
@@ -526,32 +528,105 @@ function generateFinalCard() {
     const blessingDetail = document.getElementById('blessing-detail').value || "未详细填写";
     const remark = document.getElementById('remark').value || "无。";
 
+    // 纯文本导出格式（取消Markdown符号加粗与分隔线）
     const text = 
 `“${quote}”
 
----
-- **外乡人/本地人**：${identity}
-- **姓名或称呼**：${name}
-- **性别**：${gender}
-- **种族**：${race}
-- **身高**：${height}
-- **年龄**：${age}
-- **外貌**：${appearance}
-- **介绍**：${background}
-- **阵营**：${faction}
-- **愿望**：${wish}
-- **祝福**：[${blessingType}] ${blessingDetail}
-- **备注**：${remark}
----`;
+外乡人/本地人：${identity}
+姓名或称呼：${name}
+性别：${gender}
+种族：${race}
+身高：${height}
+年龄：${age}
+外貌：${appearance}
+介绍：${background}
+阵营：${faction}
+愿望：${wish}
+祝福：[${blessingType}] ${blessingDetail}
+备注：${remark}`;
 
     document.getElementById('output').innerText = text;
 }
 
+// 多层降级兼容移动端复制逻辑
 function copyCardText() {
     const text = document.getElementById('output').innerText;
-    navigator.clipboard.writeText(text).then(() => {
-        alert('已复制人设卡文本！直接粘贴到 Notion 即可。');
-    });
+
+    // 方法1：优先使用 Clipboard API
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(() => {
+            showSuccess();
+        }).catch(() => {
+            fallbackCopy(text);
+        });
+    } else {
+        fallbackCopy(text);
+    }
+}
+
+// 方法2：旧版选中文本执行 execCommand 降级
+function fallbackCopy(text) {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.position = "fixed";
+    textArea.style.top = "0";
+    textArea.style.left = "0";
+    textArea.style.width = "2em";
+    textArea.style.height = "2em";
+    textArea.style.padding = "0";
+    textArea.style.border = "none";
+    textArea.style.outline = "none";
+    textArea.style.boxShadow = "none";
+    textArea.style.background = "transparent";
+    document.body.appendChild(textArea);
+    
+    textArea.focus();
+    textArea.select();
+    
+    // 兼容 iOS Safari 选中范围
+    if (navigator.userAgent.match(/ipad|ipod|iphone/i)) {
+        const range = document.createRange();
+        range.selectNodeContents(textArea);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+        textArea.setSelectionRange(0, 999999);
+    }
+
+    let successful = false;
+    try {
+        successful = document.execCommand('copy');
+    } catch (err) {
+        successful = false;
+    }
+
+    document.body.removeChild(textArea);
+
+    if (successful) {
+        showSuccess();
+    } else {
+        // 方法3：长按手动复制
+        selectOutputText();
+        alert('系统拦截了自动复制。已为你自动选中文本，请长按下方黑色区域选择“复制”！');
+    }
+}
+
+function showSuccess() {
+    const btn = document.getElementById('copy-btn');
+    btn.innerText = '✅ 已成功复制文本！可以直接粘贴到 txt 中了';
+    btn.style.background = '#27ae60';
+    setTimeout(() => {
+        btn.innerText = '一键复制纯文本人设卡';
+    }, 2500);
+}
+
+function selectOutputText() {
+    const output = document.getElementById('output');
+    const range = document.createRange();
+    range.selectNodeContents(output);
+    const selection = window.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(range);
 }
 
 // 初始化
