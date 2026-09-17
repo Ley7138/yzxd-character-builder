@@ -139,6 +139,102 @@
             border-color: var(--primary);
         }
 
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+
+        .checkbox-label input {
+            margin-right: 8px;
+            width: 16px;
+            height: 16px;
+        }
+
+        .hybrid-box {
+            border: 1px dashed var(--border-color);
+            padding: 12px;
+            border-radius: 6px;
+            background: #fafbfc;
+            margin-bottom: 15px;
+        }
+
+        .hybrid-item {
+            margin-bottom: 10px;
+        }
+
+        .hybrid-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .sub-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        /* 图片上传与预览区域 */
+        .image-upload-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .img-preview-box {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .img-preview-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .img-preview-box .remove-btn {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            background: rgba(0,0,0,0.6);
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 12px;
+            line-height: 18px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .upload-btn-box {
+            width: 80px;
+            height: 80px;
+            border: 2px dashed var(--border-color);
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-size: 12px;
+            background: #fafbfc;
+        }
+
+        .upload-btn-box:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
         /* 设定原文展示框 */
         .info-box {
             margin-top: 10px;
@@ -201,6 +297,18 @@
             background: #219150;
         }
 
+        .btn-export-img {
+            background: #2980b9;
+            color: white;
+            width: 100%;
+            margin-top: 10px;
+            padding: 12px;
+        }
+
+        .btn-export-img:hover {
+            background: #1f6391;
+        }
+
         #output {
             background: #1e293b;
             color: #f8fafc;
@@ -213,6 +321,20 @@
             margin-top: 15px;
             -webkit-user-select: text;
             user-select: text;
+        }
+
+        /* 生成的图片展示区 */
+        #generated-image-box {
+            margin-top: 20px;
+            text-align: center;
+            display: none;
+        }
+
+        #generated-image-box img {
+            max-width: 100%;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
     </style>
 </head>
@@ -228,14 +350,26 @@
         <div class="step-node" id="node-5">5</div>
     </div>
 
-    <!-- 步骤 1：基本信息 -->
+    <!-- 步骤 1：基本信息与图片 -->
     <div class="step-page active" id="step-1">
-        <h2>基础信息</h2>
-        <p class="subtitle">请填写角色的基本称呼与外貌设定。</p>
+        <h2>基础信息与形象图片</h2>
+        <p class="subtitle">请填写角色的基本称呼，并上传立绘/形象参考图。</p>
 
         <div class="form-group">
             <label>角色台词 / 常用语</label>
-            <input type="text" id="quote" placeholder="“这里写一句或者几句台词/人物可能会说的话！”">
+            <textarea id="quote" rows="2" placeholder="这里写一句或者几句台词/人物可能会说的话！（支持换行）"></textarea>
+        </div>
+
+        <!-- 图片上传区 (位于台词后) -->
+        <div class="form-group">
+            <label>形象/参考图片上传 (1 ~ 4张，可选)</label>
+            <div class="image-upload-wrapper" id="img-wrapper">
+                <div class="upload-btn-box" id="upload-btn" onclick="document.getElementById('img-input').click()">
+                    <span style="font-size:20px;">+</span>
+                    <span>上传图片</span>
+                </div>
+            </div>
+            <input type="file" id="img-input" accept="image/*" multiple style="display:none;" onchange="handleImageUpload(event)">
         </div>
 
         <div class="form-group">
@@ -286,33 +420,72 @@
         </div>
 
         <div class="form-group">
-            <label>种族选择</label>
-            <select id="race" onchange="updateRaceInfo()">
-                <option value="人类">人类</option>
-                <option value="精灵">精灵</option>
-                <option value="半精灵">半精灵</option>
-                <option value="妖精">妖精</option>
-                <option value="影妖精">影妖精</option>
-                <option value="智兽">智兽</option>
-                <option value="兽人">兽人</option>
-                <option value="半兽人">半兽人</option>
-                <option value="海之民">海之民</option>
-                <option value="魔族">魔族</option>
-                <option value="古龙族">古龙族（魔族分支）</option>
-                <option value="影族">影族（魔族分支）</option>
-                <option value="光灵">光灵（魔族分支）</option>
-                <option value="吸血鬼（噬血魔）">吸血鬼/噬血魔（魔族分支）</option>
-                <option value="梦魔">梦魔（魔族分支）</option>
-                <option value="魅魔">魅魔（魔族分支）</option>
-                <option value="亡灵">亡灵（通用）</option>
-                <option value="亡灵（徘徊者）">亡灵（徘徊者）</option>
-                <option value="亡灵（飘泊者）">亡灵（飘泊者）</option>
-                <option value="亡灵（梦魇）">亡灵（梦魇）</option>
-                <option value="亡灵（替代者）">亡灵（替代者）</option>
-                <option value="人造人（机构管理）">人造人（机构管理）</option>
-                <option value="人造人（非法）">人造人（非法）</option>
-                <option value="智慧机械">智慧机械</option>
-            </select>
+            <label class="checkbox-label">
+                <input type="checkbox" id="is-hybrid" onchange="toggleHybridMode()">如果是混血请勾选（最多支持3种混血）
+            </label>
+
+            <!-- 单一种族选择区 -->
+            <div id="single-race-box">
+                <label>种族选择</label>
+                <select id="race" onchange="updateRaceInfo()">
+                    <option value="人类">人类</option>
+                    <option value="精灵">精灵</option>
+                    <option value="半精灵">半精灵</option>
+                    <option value="妖精">妖精</option>
+                    <option value="影妖精">影妖精</option>
+                    <option value="智兽">智兽</option>
+                    <option value="兽人">兽人</option>
+                    <option value="半兽人">半兽人</option>
+                    <option value="海之民">海之民</option>
+                    <option value="魔族">魔族</option>
+                    <option value="古龙族">古龙族（魔族分支）</option>
+                    <option value="影族">影族（魔族分支）</option>
+                    <option value="光灵">光灵（魔族分支）</option>
+                    <option value="吸血鬼（噬血魔）">吸血鬼/噬血魔（魔族分支）</option>
+                    <option value="梦魔">梦魔（魔族分支）</option>
+                    <option value="魅魔">魅魔（魔族分支）</option>
+                    <option value="亡灵">亡灵（通用）</option>
+                    <option value="亡灵（徘徊者）">亡灵（徘徊者）</option>
+                    <option value="亡灵（飘泊者）">亡灵（飘泊者）</option>
+                    <option value="亡灵（梦魇）">亡灵（梦魇）</option>
+                    <option value="亡灵（替代者）">亡灵（替代者）</option>
+                    <option value="人造人（机构管理）">人造人（机构管理）</option>
+                    <option value="人造人（非法）">人造人（非法）</option>
+                    <option value="智慧机械">智慧机械</option>
+                    <option value="自定义种族">自定义种族</option>
+                </select>
+
+                <div id="custom-race-box" style="display:none; margin-top:8px;">
+                    <input type="text" id="custom-race-input" placeholder="请输入自定义种族名称">
+                </div>
+            </div>
+
+            <!-- 混血组选择区 -->
+            <div id="hybrid-race-box" class="hybrid-box" style="display:none;">
+                <div class="hybrid-item">
+                    <span class="sub-label">血统 1 *</span>
+                    <select id="hybrid-race-1" onchange="updateRaceInfo()">
+                        <!-- JS 动态填入 -->
+                    </select>
+                    <input type="text" id="hybrid-custom-1" placeholder="请输入自定义血统 1" style="display:none; margin-top:5px;">
+                </div>
+                <div class="hybrid-item">
+                    <span class="sub-label">血统 2 *</span>
+                    <select id="hybrid-race-2" onchange="updateRaceInfo()">
+                        <!-- JS 动态填入 -->
+                    </select>
+                    <input type="text" id="hybrid-custom-2" placeholder="请输入自定义血统 2" style="display:none; margin-top:5px;">
+                </div>
+                <div class="hybrid-item">
+                    <span class="sub-label">血统 3 (可选)</span>
+                    <select id="hybrid-race-3" onchange="updateRaceInfo()">
+                        <option value="">无（仅双重混血）</option>
+                        <!-- JS 动态填入 -->
+                    </select>
+                    <input type="text" id="hybrid-custom-3" placeholder="请输入自定义血统 3" style="display:none; margin-top:5px;">
+                </div>
+            </div>
+
             <div class="info-box" id="race-info">载入种族设定中...</div>
         </div>
     </div>
@@ -379,13 +552,20 @@
         </div>
     </div>
 
-    <!-- 步骤 5：完成与复制 -->
+    <!-- 步骤 5：完成与导出 -->
     <div class="step-page" id="step-5">
         <h2>人设卡生成完成！</h2>
-        <p class="subtitle">点击下方按钮复制普通文本，可直接粘贴保存为 txt 格式。</p>
+        <p class="subtitle">复制文本保存为 txt，或生成包含图片的白底 PNG 导出。</p>
 
         <div id="output"></div>
+
         <button class="btn-copy" id="copy-btn" onclick="copyCardText()">一键复制纯文本人设卡</button>
+        <button class="btn-export-img" onclick="generateWhiteImagePNG()">导出为白底 PNG 图片</button>
+
+        <div id="generated-image-box">
+            <p style="font-size:12px; color:var(--text-muted); margin-bottom:8px;">长按或右键下方图片保存：</p>
+            <img id="final-png-img" src="" alt="人设卡图片">
+        </div>
     </div>
 
     <!-- 导航按钮 -->
@@ -396,7 +576,60 @@
 </div>
 
 <script>
-// 原案文本 - 种族
+let uploadedImages = [];
+
+function handleImageUpload(e) {
+    const files = Array.from(e.target.files);
+    if (uploadedImages.length + files.length > 4) {
+        alert('最多只能上传 4 张形象参考图！');
+        return;
+    }
+
+    files.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            uploadedImages.push(event.target.result);
+            renderImgPreviews();
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+function removeImage(index) {
+    uploadedImages.splice(index, 1);
+    renderImgPreviews();
+}
+
+function renderImgPreviews() {
+    const wrapper = document.getElementById('img-wrapper');
+    const uploadBtn = document.getElementById('upload-btn');
+    
+    wrapper.querySelectorAll('.img-preview-box').forEach(el => el.remove());
+
+    uploadedImages.forEach((src, idx) => {
+        const box = document.createElement('div');
+        box.className = 'img-preview-box';
+        box.innerHTML = `
+            <img src="${src}">
+            <div class="remove-btn" onclick="removeImage(${idx})">×</div>
+        `;
+        wrapper.insertBefore(box, uploadBtn);
+    });
+
+    if (uploadedImages.length >= 4) {
+        uploadBtn.style.display = 'none';
+    } else {
+        uploadBtn.style.display = 'flex';
+    }
+}
+
+const raceOptionsList = [
+    "人类", "精灵", "半精灵", "妖精", "影妖精", "智兽", "兽人", "半兽人", 
+    "海之民", "魔族", "古龙族", "影族", "光灵", "吸血鬼（噬血魔）", "梦魔", 
+    "魅魔", "亡灵", "亡灵（徘徊者）", "亡灵（飘泊者）", "亡灵（梦魇）", 
+    "亡灵（替代者）", "人造人（机构管理）", "人造人（非法）", "智慧机械", "自定义种族"
+];
+
 const raceData = {
     "人类": "1.人类\n大陆上数量最多的种族。",
     "精灵": "2.精灵\n由大气的魔素孕育，从世界大树下的“生命母泉”诞生的存在。魔素的质量会直接影响其身心健康，所以对居住地挑剔。（也有对魔素比较不敏感的存在。越对魔素敏感一般也更擅长运用魔法）",
@@ -421,10 +654,10 @@ const raceData = {
     "亡灵（替代者）": "21.亡灵（替代者）\n拥有寄生的能力或跟宿主有强烈联系，长期附身活人或者尸体，替代其存在活着的能力。能力受附身对象影响，可以使用附身对象的能力和祝福。",
     "人造人（机构管理）": "22.人造人（机构管理）\n拥有皇家授权的炼金术院制造，被允许制作和改良人造人，并投入各个领域使用，炼金术院大部分的杂务和警备工作都由人造人们处理。只要有符合一定标准的四肢，头部和躯体，加入魔导核心，人造人便可以成立。",
     "人造人（非法）": "23.人造人（非法）\n非法的人造人，未经过授权制作的人造人都在此类，一般为炼金术士的私人研究，由于没有成熟和规范的技术支持，经常诞生异形一样的扭曲存在。",
-    "智慧机械": "24.智慧机械\n拥有智慧的机械的统称，其数量少之又少，不限于人形，很少人研究的领域，但似乎有特殊的团体在研究......？"
+    "智慧机械": "24.智慧机械\n拥有智慧的机械的统称，其数量少之又少，不限于人形，很少人研究的领域，但似乎有特殊的团体在研究......？",
+    "自定义种族": "自定义种族\n可以自由设定属于你角色的特殊种族信息。"
 };
 
-// 原案文本 - 阵营
 const factionData = {
     "无": "无阵营。自由行动或尚未加入任何组织。",
     "王国/Kingdom": "1.王国/Kingdom\n统治王国的国王的侧近或者支持者们。\n阵营目的：将所有主要的反王国势力消除或者制服，守护国民的和平。",
@@ -437,7 +670,6 @@ const factionData = {
     "见证者协会/Witnesses": "8.见证者协会/Witnesses\n历史的见证人！一群对于历史和真实名人有着疯狂热爱的存在，其背后听说有贵族支撑，在社会的黑暗面也有线人，偷偷地做着有点见不得光的二次创作小说，音乐和画作。\n阵营目的：收集尽可能多的情报，见证时代的最后。"
 };
 
-// 原案文本 - 祝福
 const blessingData = {
     "未分发": "未分发\n如果有点想不出来，请写下“未分发”，系统会为你分发一个。也存在初期鉴定不出来，后来才展现的“迟来的祝福”。",
     "神眷": "1.神眷 - “心愿“达成以后可以得到的第二个祝福，一般与对象的愿望，为人行事和使命等息息相关。",
@@ -450,6 +682,25 @@ const blessingData = {
 
 let currentStep = 1;
 
+function initHybridOptions() {
+    [1, 2, 3].forEach(idx => {
+        const select = document.getElementById(`hybrid-race-${idx}`);
+        raceOptionsList.forEach(r => {
+            const opt = document.createElement('option');
+            opt.value = r;
+            opt.innerText = r;
+            select.appendChild(opt);
+        });
+    });
+}
+
+function toggleHybridMode() {
+    const isHybrid = document.getElementById('is-hybrid').checked;
+    document.getElementById('single-race-box').style.display = isHybrid ? 'none' : 'block';
+    document.getElementById('hybrid-race-box').style.display = isHybrid ? 'block' : 'none';
+    updateRaceInfo();
+}
+
 function updateIdentityInfo() {
     const val = document.getElementById('identity').value;
     document.getElementById('identity-info').innerText = val === "外乡人" 
@@ -458,8 +709,36 @@ function updateIdentityInfo() {
 }
 
 function updateRaceInfo() {
-    const val = document.getElementById('race').value;
-    document.getElementById('race-info').innerText = raceData[val] || "无相关设定介绍。";
+    const isHybrid = document.getElementById('is-hybrid').checked;
+
+    if (!isHybrid) {
+        const val = document.getElementById('race').value;
+        const customBox = document.getElementById('custom-race-box');
+        if (val === "自定义种族") {
+            customBox.style.display = 'block';
+            document.getElementById('race-info').innerText = raceData["自定义种族"];
+        } else {
+            customBox.style.display = 'none';
+            document.getElementById('race-info').innerText = raceData[val] || "无相关设定介绍。";
+        }
+    } else {
+        let infoText = "【混血设定】\n选择的混血种族设定如下：\n";
+        [1, 2, 3].forEach(i => {
+            const selVal = document.getElementById(`hybrid-race-${i}`).value;
+            const customInput = document.getElementById(`hybrid-custom-${i}`);
+
+            if (selVal === "自定义种族") {
+                customInput.style.display = 'block';
+            } else {
+                customInput.style.display = 'none';
+            }
+
+            if (selVal && selVal !== "") {
+                infoText += `\n- 血统 ${i} (${selVal}):\n${raceData[selVal] || '自定义种族'}`;
+            }
+        });
+        document.getElementById('race-info').innerText = infoText;
+    }
 }
 
 function updateFactionInfo() {
@@ -470,6 +749,37 @@ function updateFactionInfo() {
 function updateBlessingInfo() {
     const val = document.getElementById('blessing-type').value;
     document.getElementById('blessing-info').innerText = blessingData[val] || "无相关设定介绍。";
+}
+
+function getSelectedRaceName() {
+    const isHybrid = document.getElementById('is-hybrid').checked;
+
+    if (!isHybrid) {
+        const val = document.getElementById('race').value;
+        if (val === "自定义种族") {
+            const inputVal = document.getElementById('custom-race-input').value.trim();
+            return inputVal || "未知自定义种族";
+        }
+        return val;
+    } else {
+        let races = [];
+        [1, 2, 3].forEach(i => {
+            const val = document.getElementById(`hybrid-race-${i}`).value;
+            if (val) {
+                if (val === "自定义种族") {
+                    const cVal = document.getElementById(`hybrid-custom-${i}`).value.trim();
+                    races.push(cVal || "自定义种族");
+                } else {
+                    races.push(val);
+                }
+            }
+        });
+
+        if (races.length === 0) return "未选择混血种族";
+        if (races.length === 1) return races[0];
+        if (races.length === 2) return `${races[0]}与${races[1]}的混血`;
+        if (races.length === 3) return `${races[0]}、${races[1]}与${races[2]}的混血`;
+    }
 }
 
 function changeStep(delta) {
@@ -502,6 +812,17 @@ function validateCurrentStep() {
             return false;
         }
     }
+    if (currentStep === 2) {
+        const isHybrid = document.getElementById('is-hybrid').checked;
+        if (isHybrid) {
+            const r1 = document.getElementById('hybrid-race-1').value;
+            const r2 = document.getElementById('hybrid-race-2').value;
+            if (!r1 || !r2) {
+                alert('混血模式下请至少选择两种血统！');
+                return false;
+            }
+        }
+    }
     if (currentStep === 4) {
         const wish = document.getElementById('wish').value.trim();
         if (!wish) {
@@ -513,14 +834,15 @@ function validateCurrentStep() {
 }
 
 function generateFinalCard() {
-    const quote = document.getElementById('quote').value || "......";
+    const rawQuote = document.getElementById('quote').value.trim();
+    const quote = rawQuote ? `“${rawQuote}”` : "“......”";
     const name = document.getElementById('name').value;
     const gender = document.getElementById('gender').value;
     const height = document.getElementById('height').value || "未填写";
     const age = document.getElementById('age').value || "未填写";
     const appearance = document.getElementById('appearance').value || "未填写";
     const identity = document.getElementById('identity').value;
-    const race = document.getElementById('race').value;
+    const race = getSelectedRaceName();
     const faction = document.getElementById('faction').value;
     const background = document.getElementById('background').value || "无。";
     const wish = document.getElementById('wish').value;
@@ -528,9 +850,8 @@ function generateFinalCard() {
     const blessingDetail = document.getElementById('blessing-detail').value || "未详细填写";
     const remark = document.getElementById('remark').value || "无。";
 
-    // 纯文本导出格式（取消Markdown符号加粗与分隔线）
     const text = 
-`“${quote}”
+`${quote}
 
 外乡人/本地人：${identity}
 姓名或称呼：${name}
@@ -548,11 +869,144 @@ function generateFinalCard() {
     document.getElementById('output').innerText = text;
 }
 
-// 多层降级兼容移动端复制逻辑
+// 导出白底 PNG 图片算法 (支持台词后紧跟图片竖排)
+function generateWhiteImagePNG() {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    const width = 800;
+    const padding = 40;
+    const fontText = "16px sans-serif";
+    const fontQuote = "italic 18px sans-serif";
+
+    const textLines = document.getElementById('output').innerText.split('\n');
+
+    // 分分离台词部分与后续属性信息部分
+    const quoteLines = [];
+    const infoLines = [];
+    let isQuoteArea = true;
+
+    textLines.forEach(line => {
+        if (line.startsWith("外乡人/本地人：")) {
+            isQuoteArea = false;
+        }
+        if (isQuoteArea) {
+            quoteLines.push(line);
+        } else {
+            infoLines.push(line);
+        }
+    });
+
+    // 计算各块高度 (用于设置画布总高度)
+    let totalHeight = padding + 30;
+    totalHeight += quoteLines.length * 28; // 台词高度
+
+    // 计算竖向排列的图片总高度 (每张图缩放到适中大小，竖向排列)
+    const singleImgMaxHeight = 350; // 竖排时每张图片的最大高度
+    const imgGap = 20;
+    let imgBlockHeight = 0;
+
+    if (uploadedImages.length > 0) {
+        // 预估图片块占用的总高度
+        imgBlockHeight = uploadedImages.length * (singleImgMaxHeight + imgGap);
+        totalHeight += imgBlockHeight + 20; // 加点前后间距
+    }
+
+    totalHeight += infoLines.length * 28; // 个人信息高度
+    totalHeight += padding;
+
+    canvas.width = width;
+    canvas.height = totalHeight;
+
+    // 1. 绘制白底
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // 2. 绘制外框饰条
+    ctx.strokeStyle = "#4a6fa5";
+    ctx.lineWidth = 6;
+    ctx.strokeRect(15, 15, canvas.width - 30, canvas.height - 30);
+
+    // 3. 绘制台词文本
+    let drawY = padding + 30;
+    ctx.font = fontQuote;
+    ctx.fillStyle = "#3b5984";
+
+    quoteLines.forEach(line => {
+        ctx.fillText(line, padding + 10, drawY);
+        drawY += 28;
+    });
+
+    drawY += 10; // 空出一小段间距
+
+    // 4. 绘制图片（在台词下方竖向排列）
+    if (uploadedImages.length > 0) {
+        let loadedCount = 0;
+        const imgObjs = [];
+
+        uploadedImages.forEach((src, idx) => {
+            const img = new Image();
+            img.src = src;
+            img.onload = () => {
+                loadedCount++;
+                imgObjs[idx] = img;
+                if (loadedCount === uploadedImages.length) {
+                    drawVerticalImages(ctx, imgObjs, drawY, width - (padding * 2), singleImgMaxHeight, imgGap, (finalImgY) => {
+                        // 图片绘制完成后，接着在下方绘制属性信息
+                        drawInfoLines(ctx, infoLines, finalImgY + 20, fontText, padding);
+                        renderFinalCanvasToImage(canvas);
+                    });
+                }
+            };
+        });
+    } else {
+        // 没有图片时直接绘制属性信息
+        drawInfoLines(ctx, infoLines, drawY, fontText, padding);
+        renderFinalCanvasToImage(canvas);
+    }
+}
+
+// 竖排图片绘制逻辑
+function drawVerticalImages(ctx, imgObjs, startY, availableWidth, maxHeight, gap, callback) {
+    let currentY = startY;
+
+    imgObjs.forEach((img) => {
+        // 计算保持比例的缩放尺寸
+        const scale = Math.min(availableWidth / img.width, maxHeight / img.height);
+        const w = img.width * scale;
+        const h = img.height * scale;
+        const x = (800 - w) / 2; // 水平居中展示
+
+        ctx.drawImage(img, x, currentY, w, h);
+        currentY += h + gap;
+    });
+
+    callback(currentY);
+}
+
+// 绘制个人属性信息行
+function drawInfoLines(ctx, infoLines, startY, fontText, padding) {
+    ctx.font = fontText;
+    ctx.fillStyle = "#2c3e50";
+    let drawY = startY;
+
+    infoLines.forEach(line => {
+        ctx.fillText(line, padding + 10, drawY);
+        drawY += 28;
+    });
+}
+
+function renderFinalCanvasToImage(canvas) {
+    const dataURL = canvas.toDataURL('image/png');
+    const finalImg = document.getElementById('final-png-img');
+    finalImg.src = dataURL;
+    document.getElementById('generated-image-box').style.display = 'block';
+}
+
+// 文本复制
 function copyCardText() {
     const text = document.getElementById('output').innerText;
 
-    // 方法1：优先使用 Clipboard API
     if (navigator.clipboard && window.isSecureContext) {
         navigator.clipboard.writeText(text).then(() => {
             showSuccess();
@@ -564,7 +1018,6 @@ function copyCardText() {
     }
 }
 
-// 方法2：旧版选中文本执行 execCommand 降级
 function fallbackCopy(text) {
     const textArea = document.createElement("textarea");
     textArea.value = text;
@@ -583,7 +1036,6 @@ function fallbackCopy(text) {
     textArea.focus();
     textArea.select();
     
-    // 兼容 iOS Safari 选中范围
     if (navigator.userAgent.match(/ipad|ipod|iphone/i)) {
         const range = document.createRange();
         range.selectNodeContents(textArea);
@@ -605,7 +1057,6 @@ function fallbackCopy(text) {
     if (successful) {
         showSuccess();
     } else {
-        // 方法3：长按手动复制
         selectOutputText();
         alert('系统拦截了自动复制。已为你自动选中文本，请长按下方黑色区域选择“复制”！');
     }
@@ -630,6 +1081,7 @@ function selectOutputText() {
 }
 
 // 初始化
+initHybridOptions();
 updateRaceInfo();
 updateFactionInfo();
 updateBlessingInfo();
